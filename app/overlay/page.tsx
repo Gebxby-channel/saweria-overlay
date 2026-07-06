@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Pusher from 'pusher-js';
-//tes
-// Tipe data sederhana untuk donasi
+
 interface DonationData {
   donator_name: string;
   amount_raw: number;
@@ -14,20 +13,14 @@ export default function OverlayPage() {
   const [donation, setDonation] = useState<DonationData | null>(null);
 
   useEffect(() => {
-    // Inisialisasi Pusher Client
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     });
 
-    // Berlangganan ke channel yang sama dengan backend
     const channel = pusher.subscribe('saweria-channel');
     
-    // Dengarkan event 'donation'
     channel.bind('donation', function(data: any) {
-      console.log('Donasi masuk:', data);
-      // Saweria biasanya mengirim array di dalam object, kita ambil data pertama
       const donationInfo = data.data?.[0] || data; 
-      
       setDonation(donationInfo);
 
       // Sembunyikan notifikasi setelah 6 detik
@@ -41,21 +34,30 @@ export default function OverlayPage() {
     };
   }, []);
 
-  if (!donation) return null; // Layar kosong/transparan jika tidak ada donasi
+  if (!donation) return null;
 
   return (
-    <div className="flex h-screen w-screen items-end justify-center pb-10">
-      {/* Container Notifikasi (Silakan styling sesuka hati) */}
-      <div className="bg-white/90 p-6 rounded-2xl shadow-xl text-center max-w-md animate-bounce">
-        <h1 className="text-2xl font-bold text-gray-800">
-          🎉 {donation.donator_name} 🎉
+    // items-start dan pt-16 akan memposisikan notifikasi di ATAS dengan sedikit jarak dari pucuk layar
+    <div className="flex h-screen w-screen items-start justify-center pt-16">
+      
+      {/* Box Notifikasi: Dark mode, backdrop blur, border neon */}
+      <div className="bg-gray-900/90 border border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.4)] p-8 rounded-2xl text-center min-w-[350px] max-w-lg animate-bounce backdrop-blur-md">
+        
+        {/* Nama Donatur: Teks Gradien */}
+        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2 uppercase tracking-wider">
+          {donation.donator_name}
         </h1>
-        <p className="text-xl text-green-600 font-semibold my-2">
+        
+        {/* Nominal: Warna Hijau Neon */}
+        <p className="text-2xl text-green-400 font-bold mb-4 drop-shadow-md">
           Rp {donation.amount_raw.toLocaleString('id-ID')}
         </p>
-        <p className="text-gray-700 italic">"{donation.message}"</p>
         
-        {/* Opsional: Tambahkan tag audio di sini jika ada suara khusus */}
+        {/* Pesan Donasi */}
+        <p className="text-gray-200 text-lg italic font-medium">
+          "{donation.message}"
+        </p>
+        
       </div>
     </div>
   );
